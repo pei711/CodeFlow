@@ -5,7 +5,7 @@ from codeflow.agent_loop import AgentLoop
 def build_agent(tmp_path, outputs):
     (tmp_path / "README.md").write_text("demo\n", encoding="utf-8")
     workspace = WorkspaceContext.build(tmp_path)
-    store = SessionStore(tmp_path / ".pico" / "sessions")
+    store = SessionStore(tmp_path / ".codeflow" / "sessions")
     return CodeFlow(
         model_client=FakeModelClient(outputs),
         workspace=workspace,
@@ -40,7 +40,7 @@ def test_codeflow_ask_delegates_to_agent_loop(tmp_path):
 def test_runtime_verifier_rejects_final_then_allows_repair(tmp_path):
     (tmp_path / "sample.txt").write_text("beta\n", encoding="utf-8")
     workspace = WorkspaceContext.build(tmp_path)
-    store = SessionStore(tmp_path / ".pico" / "sessions")
+    store = SessionStore(tmp_path / ".codeflow" / "sessions")
     agent = CodeFlow(
         model_client=FakeModelClient(
             [
@@ -78,7 +78,7 @@ def test_runtime_verifier_rejects_final_then_allows_repair(tmp_path):
 def test_runtime_verifier_fails_closed_after_retry_budget(tmp_path):
     (tmp_path / "sample.txt").write_text("beta\n", encoding="utf-8")
     workspace = WorkspaceContext.build(tmp_path)
-    store = SessionStore(tmp_path / ".pico" / "sessions")
+    store = SessionStore(tmp_path / ".codeflow" / "sessions")
     agent = CodeFlow(
         model_client=FakeModelClient(["<final>Done.</final>", "<final>Still done.</final>"]),
         workspace=workspace,

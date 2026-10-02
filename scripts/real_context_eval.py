@@ -141,8 +141,8 @@ def build_request(scenario: str, marker: str) -> str:
 def make_client(env: dict[str, str], context_window: int) -> AnthropicCompatibleModelClient:
     client = AnthropicCompatibleModelClient(
         model="deepseek-flash",
-        base_url=env.get("PICO_DEEPSEEK_API_BASE", "https://api.deepseek.com/anthropic"),
-        api_key=env.get("PICO_DEEPSEEK_API_KEY", ""),
+        base_url=env.get("CODEFLOW_DEEPSEEK_API_BASE", "https://api.deepseek.com/anthropic"),
+        api_key=env.get("CODEFLOW_DEEPSEEK_API_KEY", ""),
         temperature=0.0,
         timeout=300,
     )
@@ -171,7 +171,7 @@ def run_one(env: dict[str, str], output_root: Path, scenario: str, level: dict, 
     label = "governed" if governed else "baseline"
     # Keep the target and seeded history byte-for-byte equivalent across the
     # baseline/governed pair; only the feature flags differ.
-    marker = f"PICO_EVAL_{scenario.upper()}_{level['id']}"
+    marker = f"CODEFLOW_EVAL_{scenario.upper()}_{level['id']}"
     run_root = Path(tempfile.mkdtemp(prefix=f"{scenario}-{level['id']}-{label}-", dir=output_root))
     (run_root / "target.txt").write_text("initial content\n", encoding="utf-8")
     history = make_history(scenario, int(level["history_chars"]), marker)
@@ -209,7 +209,7 @@ def run_one(env: dict[str, str], output_root: Path, scenario: str, level: dict, 
     agent = CodeFlow(
         model_client=client,
         workspace=workspace,
-        session_store=SessionStore(run_root / ".pico" / "sessions"),
+        session_store=SessionStore(run_root / ".codeflow" / "sessions"),
         session=session,
         run_store=None,
         approval_policy="auto",
@@ -359,8 +359,8 @@ def main() -> int:
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     args = parser.parse_args()
     env = read_env(ROOT / ".env")
-    if not env.get("PICO_DEEPSEEK_API_KEY"):
-        raise SystemExit("PICO_DEEPSEEK_API_KEY is missing from .env")
+    if not env.get("CODEFLOW_DEEPSEEK_API_KEY"):
+        raise SystemExit("CODEFLOW_DEEPSEEK_API_KEY is missing from .env")
     output_root = Path(args.output).resolve()
     output_root.mkdir(parents=True, exist_ok=True)
     started_at = time.strftime("%Y-%m-%d %H:%M:%S %z")
@@ -376,7 +376,7 @@ def main() -> int:
     result = {
         "schema_version": "real-context-eval-v1",
         "model": "deepseek-flash",
-        "provider_base_url": env.get("PICO_DEEPSEEK_API_BASE", "https://api.deepseek.com/anthropic"),
+        "provider_base_url": env.get("CODEFLOW_DEEPSEEK_API_BASE", "https://api.deepseek.com/anthropic"),
         "started_at": started_at,
         "finished_at": finished_at,
         "pairs": pairs,

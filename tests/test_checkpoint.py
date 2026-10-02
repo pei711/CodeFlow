@@ -12,7 +12,7 @@ from codeflow.checkpoint import (
 def build_agent(tmp_path, outputs=None, **kwargs):
     (tmp_path / "README.md").write_text("demo\n", encoding="utf-8")
     workspace = WorkspaceContext.build(tmp_path)
-    store = SessionStore(tmp_path / ".pico" / "sessions")
+    store = SessionStore(tmp_path / ".codeflow" / "sessions")
     return CodeFlow(
         model_client=FakeModelClient(outputs or []),
         workspace=workspace,

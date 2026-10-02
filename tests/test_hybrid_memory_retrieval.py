@@ -82,19 +82,11 @@ def test_legacy_summaries_get_stable_ids_when_normalized():
     assert second[0]["summary_id"] == first[0]["summary_id"]
 
 
-def test_new_public_name_and_environment_keys_keep_legacy_compatibility():
-    assert CodeFlow is CodeFlow
-    with patch.dict(os.environ, {"CODEFLOW_PROVIDER": "openai", "PICO_PROVIDER": "deepseek"}, clear=True):
-        assert provider_env("PICO_PROVIDER") == "openai"
-    with patch.dict(os.environ, {"PICO_PROVIDER": "deepseek"}, clear=True):
-        assert provider_env("PICO_PROVIDER") == "deepseek"
+def test_codeflow_environment_key_is_used():
+    assert CodeFlow.__name__ == "CodeFlow"
+    with patch.dict(os.environ, {"CODEFLOW_PROVIDER": "deepseek"}, clear=True):
+        assert provider_env("CODEFLOW_PROVIDER") == "deepseek"
 
 
-def test_workspace_state_path_prefers_existing_data_and_new_name_for_new_workspaces(tmp_path):
+def test_workspace_state_path_uses_codeflow_state_directory(tmp_path):
     assert workspace_state_path(tmp_path, "sessions") == tmp_path / ".codeflow" / "sessions"
-    legacy = tmp_path / ".pico" / "sessions"
-    legacy.mkdir(parents=True)
-    assert workspace_state_path(tmp_path, "sessions") == legacy
-    current = tmp_path / ".codeflow" / "sessions"
-    current.mkdir(parents=True)
-    assert workspace_state_path(tmp_path, "sessions") == current

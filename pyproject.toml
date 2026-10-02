@@ -22,7 +22,7 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["codeflow*", "pico*"]
+include = ["codeflow*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

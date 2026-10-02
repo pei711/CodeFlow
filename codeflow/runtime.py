@@ -80,7 +80,7 @@ DURABLE_MEMORY_LINE_PATTERNS = (
 )
 SECRET_SHAPED_TEXT_PATTERN = re.compile(r"(?i)(\b(api[_ -]?key|token|secret|password)\b|sk-[A-Za-z0-9_-]{6,})")
 
-__all__ = ["CodeFlow", "Pico", "SessionStore"]
+__all__ = ["CodeFlow", "SessionStore"]
 
 
 class CodeFlow:
@@ -1115,6 +1115,3 @@ class CodeFlow:
         if os.path.commonpath([str(self.root), str(resolved)]) != str(self.root):
             raise ValueError(f"path escapes workspace: {raw_path}")
         return resolved
-
-
-Pico = CodeFlow

@@ -16,7 +16,7 @@ def build_agent(tmp_path, **kwargs):
     return CodeFlow(
         model_client=FakeModelClient([]),
         workspace=WorkspaceContext.build(tmp_path),
-        session_store=SessionStore(tmp_path / ".pico" / "sessions"),
+        session_store=SessionStore(tmp_path / ".codeflow" / "sessions"),
         approval_policy=kwargs.pop("approval_policy", "auto"),
         shell_backend="direct",
         **kwargs,

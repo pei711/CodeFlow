@@ -26,18 +26,14 @@ from .workspace_input import resolve_workspace_path
 
 DEFAULT_SECRET_ENV_NAMES = (
     "CODEFLOW_OPENAI_API_KEY",
-    "PICO_OPENAI_API_KEY",
     "OPENAI_API_KEY",
     "OPENAI_API_TOKEN",
     "CODEFLOW_ANTHROPIC_API_KEY",
-    "PICO_ANTHROPIC_API_KEY",
     "ANTHROPIC_API_KEY",
     "ANTHROPIC_AUTH_TOKEN",
     "CODEFLOW_DEEPSEEK_API_KEY",
-    "PICO_DEEPSEEK_API_KEY",
     "DEEPSEEK_API_KEY",
     "CODEFLOW_RIGHT_CODES_API_KEY",
-    "PICO_RIGHT_CODES_API_KEY",
     "RIGHT_CODES_API_KEY",
     "GITHUB_PAT",
     "GH_PAT",
@@ -78,16 +74,15 @@ DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com/anthropic"
 DEFAULT_PROVIDER = "deepseek"
 PROVIDER_CHOICES = ("ollama", "openai", "anthropic", "deepseek")
 SECRET_ENV_NAMES_VAR = "CODEFLOW_SECRET_ENV_NAMES"
-LEGACY_SECRET_ENV_NAMES_VAR = "PICO_SECRET_ENV_NAMES"
 
 
 def _effective_provider(args):
     # Provider 选择优先级：
     # 1. 用户显式传入 --provider
-    # 2. 项目 .env / shell 里的 PICO_PROVIDER
+    # 2. 项目 .env / shell 里的 CODEFLOW_PROVIDER
     # 3. 代码里的默认 provider
     provider = getattr(args, "provider", None) or provider_env(
-        "PICO_PROVIDER", default=DEFAULT_PROVIDER
+        "CODEFLOW_PROVIDER", default=DEFAULT_PROVIDER
     )
     if provider not in PROVIDER_CHOICES:
         choices = ", ".join(PROVIDER_CHOICES)
@@ -104,17 +99,17 @@ def _effective_model(args, provider):
     if explicit_model:
         return explicit_model
     if provider == "openai":
-        model = provider_env("PICO_OPENAI_MODEL", ("OPENAI_MODEL",))
+        model = provider_env("CODEFLOW_OPENAI_MODEL", ("OPENAI_MODEL",))
         if model:
             return model
         return DEFAULT_OPENAI_MODEL
     if provider == "anthropic":
-        model = provider_env("PICO_ANTHROPIC_MODEL", ("ANTHROPIC_MODEL",))
+        model = provider_env("CODEFLOW_ANTHROPIC_MODEL", ("ANTHROPIC_MODEL",))
         if model:
             return model
         return DEFAULT_ANTHROPIC_MODEL
     if provider == "deepseek":
-        model = provider_env("PICO_DEEPSEEK_MODEL", ("DEEPSEEK_MODEL",))
+        model = provider_env("CODEFLOW_DEEPSEEK_MODEL", ("DEEPSEEK_MODEL",))
         if model:
             return model
         return DEFAULT_DEEPSEEK_MODEL
@@ -124,7 +119,7 @@ def _effective_model(args, provider):
 def _configured_secret_names(args):
     configured_secret_names = set(DEFAULT_SECRET_ENV_NAMES)
     configured_secret_names.update(str(name).upper() for name in args.secret_env_names)
-    extra_names = os.environ.get(SECRET_ENV_NAMES_VAR) or os.environ.get(LEGACY_SECRET_ENV_NAMES_VAR, "")
+    extra_names = os.environ.get(SECRET_ENV_NAMES_VAR, "")
     if extra_names.strip():
         configured_secret_names.update(
             item.strip().upper()
@@ -140,16 +135,16 @@ def _build_model_client(args):
     # 真正的提示词格式、缓存支持、HTTP 协议差异，都封装在 models.py 里。
     if provider == "openai":
         model = _effective_model(args, provider)
-        base_url = getattr(args, "base_url", None) or provider_env("PICO_OPENAI_API_BASE", ("OPENAI_API_BASE",), DEFAULT_OPENAI_BASE_URL)
+        base_url = getattr(args, "base_url", None) or provider_env("CODEFLOW_OPENAI_API_BASE", ("OPENAI_API_BASE",), DEFAULT_OPENAI_BASE_URL)
         api_key = provider_env(
-            "PICO_OPENAI_API_KEY",
+            "CODEFLOW_OPENAI_API_KEY",
             (
                 "OPENAI_API_KEY",
-                "PICO_RIGHT_CODES_API_KEY",
+                "CODEFLOW_RIGHT_CODES_API_KEY",
                 "RIGHT_CODES_API_KEY",
-                "PICO_ANTHROPIC_API_KEY",
+                "CODEFLOW_ANTHROPIC_API_KEY",
                 "ANTHROPIC_API_KEY",
-                "PICO_DEEPSEEK_API_KEY",
+                "CODEFLOW_DEEPSEEK_API_KEY",
                 "DEEPSEEK_API_KEY",
             ),
         )
@@ -162,10 +157,10 @@ def _build_model_client(args):
         )
     if provider == "anthropic":
         model = _effective_model(args, provider)
-        base_url = getattr(args, "base_url", None) or provider_env("PICO_ANTHROPIC_API_BASE", ("ANTHROPIC_API_BASE",), DEFAULT_ANTHROPIC_BASE_URL)
+        base_url = getattr(args, "base_url", None) or provider_env("CODEFLOW_ANTHROPIC_API_BASE", ("ANTHROPIC_API_BASE",), DEFAULT_ANTHROPIC_BASE_URL)
         api_key = provider_env(
-            "PICO_ANTHROPIC_API_KEY",
-            ("ANTHROPIC_API_KEY", "PICO_RIGHT_CODES_API_KEY", "RIGHT_CODES_API_KEY", "PICO_OPENAI_API_KEY", "OPENAI_API_KEY"),
+            "CODEFLOW_ANTHROPIC_API_KEY",
+            ("ANTHROPIC_API_KEY", "CODEFLOW_RIGHT_CODES_API_KEY", "RIGHT_CODES_API_KEY", "CODEFLOW_OPENAI_API_KEY", "OPENAI_API_KEY"),
         )
         return AnthropicCompatibleModelClient(
             model=model,
@@ -176,8 +171,8 @@ def _build_model_client(args):
         )
     if provider == "deepseek":
         model = _effective_model(args, provider)
-        base_url = getattr(args, "base_url", None) or provider_env("PICO_DEEPSEEK_API_BASE", ("DEEPSEEK_API_BASE",), DEFAULT_DEEPSEEK_BASE_URL)
-        api_key = provider_env("PICO_DEEPSEEK_API_KEY", ("DEEPSEEK_API_KEY",))
+        base_url = getattr(args, "base_url", None) or provider_env("CODEFLOW_DEEPSEEK_API_BASE", ("DEEPSEEK_API_BASE",), DEFAULT_DEEPSEEK_BASE_URL)
+        api_key = provider_env("CODEFLOW_DEEPSEEK_API_KEY", ("DEEPSEEK_API_KEY",))
         return AnthropicCompatibleModelClient(
             model=model,
             base_url=base_url,
@@ -365,12 +360,12 @@ def build_arg_parser():
         "--provider",
         choices=PROVIDER_CHOICES,
         default=None,
-        help="Model backend to use. Defaults to CODEFLOW_PROVIDER (legacy PICO_PROVIDER) or deepseek.",
+        help="Model backend to use. Defaults to CODEFLOW_PROVIDER or deepseek.",
     )
     parser.add_argument(
         "--model",
         default=None,
-        help="Model name override. Defaults to qwen3.5:4b for Ollama or the matching CODEFLOW_*_MODEL (legacy PICO_* names are supported).",
+        help="Model name override. Defaults to qwen3.5:4b for Ollama or the matching CODEFLOW_*_MODEL setting.",
     )
     parser.add_argument("--host", default=DEFAULT_OLLAMA_HOST, help="Ollama server URL.")
     parser.add_argument("--base-url", default=None, help="Provider API base URL for deepseek, openai, or anthropic.")

@@ -8,7 +8,7 @@ def build_agent(tmp_path, outputs):
     return CodeFlow(
         model_client=client,
         workspace=WorkspaceContext.build(tmp_path),
-        session_store=SessionStore(tmp_path / ".pico" / "sessions"),
+        session_store=SessionStore(tmp_path / ".codeflow" / "sessions"),
         approval_policy="auto",
     )
 

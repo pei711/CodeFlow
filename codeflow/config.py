@@ -56,10 +56,9 @@ def load_project_env(start, override=True):
     return loaded
 
 
-def provider_env(name, legacy_names=(), default=""):
-    """Prefer the CodeFlow environment key, then preserve CodeFlow-era aliases."""
-    codeflow_name = name.replace("PICO_", "CODEFLOW_", 1) if name.startswith("PICO_") else name
-    for env_name in (codeflow_name, name, *legacy_names):
+def provider_env(name, aliases=(), default=""):
+    """Read a CodeFlow environment key, optionally falling back to provider-standard names."""
+    for env_name in (name, *aliases):
         value = os.environ.get(env_name)
         if value:
             return value

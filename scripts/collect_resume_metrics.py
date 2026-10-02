@@ -14,7 +14,7 @@ from codeflow.metrics import collect_resume_metrics, render_resume_metrics_markd
 def build_arg_parser():
     parser = argparse.ArgumentParser(description="Collect CodeFlow resume metrics from benchmark and run artifacts.")
     parser.add_argument("--benchmark-artifact", required=True, help="Path to benchmark artifact JSON.")
-    parser.add_argument("--runs-root", required=True, help="Path to .pico/runs root.")
+    parser.add_argument("--runs-root", required=True, help="Path to .codeflow/runs root.")
     parser.add_argument("--provider-experiments", default=None, help="Optional provider experiments JSON.")
     parser.add_argument("--experiment-mode", choices=("synthetic", "real"), default="synthetic", help="Whether to use deterministic synthetic experiments or real model runs.")
     parser.add_argument("--real-provider", choices=("gpt", "claude", "deepseek"), default="gpt", help="Provider to use for real experiment mode.")

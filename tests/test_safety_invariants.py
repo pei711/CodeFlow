@@ -32,7 +32,7 @@ def build_workspace(tmp_path):
 
 def build_agent(tmp_path, outputs, **kwargs):
     workspace = build_workspace(tmp_path)
-    store = SessionStore(tmp_path / ".pico" / "sessions")
+    store = SessionStore(tmp_path / ".codeflow" / "sessions")
     approval_policy = kwargs.pop("approval_policy", "auto")
     shell_backend = kwargs.pop("shell_backend", "direct")
     return CodeFlow(
@@ -137,11 +137,11 @@ def test_cli_build_agent_loads_project_env_secrets_before_redaction_setup(tmp_pa
             raise AssertionError("model should not be invoked")
 
     (tmp_path / "README.md").write_text("demo\n", encoding="utf-8")
-    (tmp_path / ".env").write_text("PICO_DEEPSEEK_API_KEY=sk-project-secret\n", encoding="utf-8")
+    (tmp_path / ".env").write_text("CODEFLOW_DEEPSEEK_API_KEY=sk-project-secret\n", encoding="utf-8")
     with patch.dict(os.environ, {}, clear=True), patch("codeflow.cli.AnthropicCompatibleModelClient", DummyModelClient):
         args = codeflow_cli.build_arg_parser().parse_args(["--cwd", str(tmp_path), "--provider", "deepseek"])
         agent = codeflow_cli.build_agent(args)
-        assert agent.secret_env_summary()["secret_env_names"] == ["PICO_DEEPSEEK_API_KEY"]
+        assert agent.secret_env_summary()["secret_env_names"] == ["CODEFLOW_DEEPSEEK_API_KEY"]
 
 
 def test_cli_build_agent_reads_secret_names_from_environment_config(tmp_path):
@@ -157,27 +157,27 @@ def test_cli_build_agent_reads_secret_names_from_environment_config(tmp_path):
     with patch.dict(
         os.environ,
         {
-            "PICO_CUSTOM_SECRET": "custom-secret-value",
-            "PICO_SECRET_ENV_NAMES": "PICO_CUSTOM_SECRET",
+            "CODEFLOW_CUSTOM_SECRET": "custom-secret-value",
+            "CODEFLOW_SECRET_ENV_NAMES": "CODEFLOW_CUSTOM_SECRET",
         },
         clear=True,
     ), patch("codeflow.cli.OllamaModelClient", DummyModelClient):
         args = codeflow_cli.build_arg_parser().parse_args(["--cwd", str(tmp_path), "--approval", "auto"])
         agent = codeflow_cli.build_agent(args)
-        assert agent.secret_env_summary()["secret_env_names"] == ["PICO_CUSTOM_SECRET"]
+        assert agent.secret_env_summary()["secret_env_names"] == ["CODEFLOW_CUSTOM_SECRET"]
 
 
 def test_run_shell_uses_allowlisted_environment_only(tmp_path):
     secret = "shh-allowlist-secret"
     agent = build_agent(tmp_path, [], approval_policy="auto")
-    script = 'import os; print(os.getenv("PICO_ALLOWLIST_SECRET", "missing"))'
+    script = 'import os; print(os.getenv("CODEFLOW_ALLOWLIST_SECRET", "missing"))'
     command = (
         subprocess.list2cmdline([sys.executable, "-c", script])
         if os.name == "nt"
         else f"{shlex.quote(sys.executable)} -c {shlex.quote(script)}"
     )
 
-    with patch.dict(os.environ, {"PICO_ALLOWLIST_SECRET": secret}, clear=False):
+    with patch.dict(os.environ, {"CODEFLOW_ALLOWLIST_SECRET": secret}, clear=False):
         result = agent.run_tool("run_shell", {"command": command, "timeout": 20})
 
     assert secret not in result

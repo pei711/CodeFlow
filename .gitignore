@@ -30,7 +30,6 @@ htmlcov/
 # Local scratch space
 tmp/
 .worktrees/
-.pico/
 .codeflow/
 .mini-codeflow/
 artifacts/

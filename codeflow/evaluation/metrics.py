@@ -197,7 +197,7 @@ def build_stress_agent_metrics():
         workspace_root = Path(temp_dir)
         (workspace_root / "README.md").write_text("demo\n", encoding="utf-8")
         workspace = WorkspaceContext.build(workspace_root)
-        store = SessionStore(workspace_root / ".pico" / "sessions")
+        store = SessionStore(workspace_root / ".codeflow" / "sessions")
         agent = CodeFlow(
             model_client=FakeModelClient([]),
             workspace=workspace,
@@ -259,7 +259,7 @@ class _MemoryExperimentModelClient(FakeModelClient):
 
 def _build_memory_experiment_agent(workspace_root, expected_fact, filename):
     workspace = WorkspaceContext.build(workspace_root)
-    store = SessionStore(workspace_root / ".pico" / "sessions")
+    store = SessionStore(workspace_root / ".codeflow" / "sessions")
     return CodeFlow(
         model_client=_MemoryExperimentModelClient(expected_fact, filename),
         workspace=workspace,
@@ -455,7 +455,7 @@ def run_context_stress_matrix(repetitions=5):
                         workspace_root = Path(temp_dir)
                         (workspace_root / "README.md").write_text("demo\n", encoding="utf-8")
                         workspace = WorkspaceContext.build(workspace_root)
-                        store = SessionStore(workspace_root / ".pico" / "sessions")
+                        store = SessionStore(workspace_root / ".codeflow" / "sessions")
                         agent = CodeFlow(
                             model_client=FakeModelClient([]),
                             workspace=workspace,
@@ -525,7 +525,7 @@ def run_context_stress_matrix(repetitions=5):
 
 def _security_agent(workspace_root, approval_policy="auto", read_only=False):
     workspace = WorkspaceContext.build(workspace_root)
-    store = SessionStore(workspace_root / ".pico" / "sessions")
+    store = SessionStore(workspace_root / ".codeflow" / "sessions")
     return CodeFlow(
         model_client=FakeModelClient([]),
         workspace=workspace,
@@ -685,40 +685,40 @@ def _provider_profile(provider):
     load_project_env(Path.cwd())
     if provider == "gpt":
         api_key = provider_env(
-            "PICO_OPENAI_API_KEY",
-            ("OPENAI_API_KEY", "PICO_RIGHT_CODES_API_KEY", "RIGHT_CODES_API_KEY", "PICO_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"),
+            "CODEFLOW_OPENAI_API_KEY",
+            ("OPENAI_API_KEY", "CODEFLOW_RIGHT_CODES_API_KEY", "RIGHT_CODES_API_KEY", "CODEFLOW_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"),
         )
         if not api_key:
-            return {"provider": provider, "status": "blocked", "reason": "PICO_OPENAI_API_KEY, OPENAI_API_KEY, or shared right.codes key missing"}
+            return {"provider": provider, "status": "blocked", "reason": "CODEFLOW_OPENAI_API_KEY, OPENAI_API_KEY, or shared right.codes key missing"}
         return {
             "provider": provider,
             "status": "ready",
-            "model": provider_env("PICO_OPENAI_MODEL", ("OPENAI_MODEL",), "gpt-5.4"),
-            "base_url": provider_env("PICO_OPENAI_API_BASE", ("OPENAI_API_BASE",), "https://api.openai.com/v1"),
+            "model": provider_env("CODEFLOW_OPENAI_MODEL", ("OPENAI_MODEL",), "gpt-5.4"),
+            "base_url": provider_env("CODEFLOW_OPENAI_API_BASE", ("OPENAI_API_BASE",), "https://api.openai.com/v1"),
             "api_key": api_key,
         }
     if provider == "deepseek":
-        api_key = provider_env("PICO_DEEPSEEK_API_KEY", ("DEEPSEEK_API_KEY",))
+        api_key = provider_env("CODEFLOW_DEEPSEEK_API_KEY", ("DEEPSEEK_API_KEY",))
         if not api_key:
-            return {"provider": provider, "status": "blocked", "reason": "PICO_DEEPSEEK_API_KEY or DEEPSEEK_API_KEY missing"}
+            return {"provider": provider, "status": "blocked", "reason": "CODEFLOW_DEEPSEEK_API_KEY or DEEPSEEK_API_KEY missing"}
         return {
             "provider": provider,
             "status": "ready",
-            "model": provider_env("PICO_DEEPSEEK_MODEL", ("DEEPSEEK_MODEL",), "deepseek-v4-pro"),
-            "base_url": provider_env("PICO_DEEPSEEK_API_BASE", ("DEEPSEEK_API_BASE",), "https://api.deepseek.com/anthropic"),
+            "model": provider_env("CODEFLOW_DEEPSEEK_MODEL", ("DEEPSEEK_MODEL",), "deepseek-v4-pro"),
+            "base_url": provider_env("CODEFLOW_DEEPSEEK_API_BASE", ("DEEPSEEK_API_BASE",), "https://api.deepseek.com/anthropic"),
             "api_key": api_key,
         }
     api_key = provider_env(
-        "PICO_ANTHROPIC_API_KEY",
-        ("ANTHROPIC_API_KEY", "PICO_RIGHT_CODES_API_KEY", "RIGHT_CODES_API_KEY", "PICO_OPENAI_API_KEY", "OPENAI_API_KEY"),
+        "CODEFLOW_ANTHROPIC_API_KEY",
+        ("ANTHROPIC_API_KEY", "CODEFLOW_RIGHT_CODES_API_KEY", "RIGHT_CODES_API_KEY", "CODEFLOW_OPENAI_API_KEY", "OPENAI_API_KEY"),
     )
     if not api_key:
-        return {"provider": "claude", "status": "blocked", "reason": "PICO_ANTHROPIC_API_KEY or ANTHROPIC_API_KEY missing"}
+        return {"provider": "claude", "status": "blocked", "reason": "CODEFLOW_ANTHROPIC_API_KEY or ANTHROPIC_API_KEY missing"}
     return {
         "provider": "claude",
         "status": "ready",
-        "model": provider_env("PICO_ANTHROPIC_MODEL", ("ANTHROPIC_MODEL",), "claude-sonnet-4-6"),
-        "base_url": provider_env("PICO_ANTHROPIC_API_BASE", ("ANTHROPIC_API_BASE",), "https://www.right.codes/claude/v1"),
+        "model": provider_env("CODEFLOW_ANTHROPIC_MODEL", ("ANTHROPIC_MODEL",), "claude-sonnet-4-6"),
+        "base_url": provider_env("CODEFLOW_ANTHROPIC_API_BASE", ("ANTHROPIC_API_BASE",), "https://www.right.codes/claude/v1"),
         "api_key": api_key,
     }
 
@@ -843,7 +843,7 @@ def _truncate_read_history(agent):
 
 def _build_real_agent(workspace_root, provider, approval_policy="auto", read_only=False):
     workspace = WorkspaceContext.build(workspace_root)
-    store = SessionStore(workspace_root / ".pico" / "sessions")
+    store = SessionStore(workspace_root / ".codeflow" / "sessions")
     return CodeFlow(
         model_client=_make_provider_client(provider),
         workspace=workspace,
@@ -1357,7 +1357,7 @@ RECOVERY_ABLATION_TASKS = [
 
 def _build_recovery_agent(workspace_root, required_fragments):
     workspace = WorkspaceContext.build(workspace_root)
-    store = SessionStore(workspace_root / ".pico" / "sessions")
+    store = SessionStore(workspace_root / ".codeflow" / "sessions")
     return CodeFlow(
         model_client=_RecoveryScenarioModelClient(required_fragments, "recovery state restored."),
         workspace=workspace,

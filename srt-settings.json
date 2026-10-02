@@ -6,7 +6,6 @@
   "filesystem": {
     "denyRead": [
       "./.env",
-      "./.pico",
       "./.codeflow"
     ],
     "allowRead": [
@@ -18,7 +17,6 @@
     "denyWrite": [
       "./.git",
       "./.env",
-      "./.pico",
       "./.codeflow",
       "./srt-settings.json"
     ]

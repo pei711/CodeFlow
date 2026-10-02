@@ -5,7 +5,7 @@ from .providers.clients import (
     OllamaModelClient,
     OpenAICompatibleModelClient,
 )
-from .runtime import CodeFlow, Pico, SessionStore
+from .runtime import CodeFlow, SessionStore
 from .verifier import RuntimeVerifier, VerificationResult
 from .workspace import WorkspaceContext
 
@@ -15,7 +15,6 @@ __all__ = [
     "FakeModelClient",
     "OllamaModelClient",
     "OpenAICompatibleModelClient",
-    "Pico",
     "RuntimeVerifier",
     "SessionStore",
     "VerificationResult",

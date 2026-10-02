@@ -18,6 +18,6 @@ Benchmark runs should preserve reproducibility metadata, task rows, summary coun
 
 ## Sample run artifact list
 
-- `.pico/runs/<run_id>/task_state.json`
-- `.pico/runs/<run_id>/trace.jsonl`
-- `.pico/runs/<run_id>/report.json`
+- `.codeflow/runs/<run_id>/task_state.json`
+- `.codeflow/runs/<run_id>/trace.jsonl`
+- `.codeflow/runs/<run_id>/report.json`

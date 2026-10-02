@@ -12,7 +12,7 @@ from codeflow import (
 )
 
 
-def test_public_api_exports_codeflow_names_and_legacy_class_alias():
+def test_public_api_exports_codeflow_names_without_old_brand_aliases():
     assert CodeFlow is not None
     assert SessionStore is not None
     assert WorkspaceContext is not None
@@ -22,11 +22,7 @@ def test_public_api_exports_codeflow_names_and_legacy_class_alias():
     assert callable(main)
     assert not hasattr(codeflow, "MiniAgent")
     assert "MiniAgent" not in codeflow.__all__
-    from pico import CodeFlow as LegacyCodeFlow
-    from pico import Pico
-
-    assert LegacyCodeFlow is CodeFlow
-    assert Pico is CodeFlow
+    assert "CodeFlow" in codeflow.__all__
 
 
 def test_build_agent_returns_codeflow(tmp_path):
@@ -38,7 +34,7 @@ def test_build_agent_returns_codeflow(tmp_path):
     assert isinstance(agent, CodeFlow)
 
 
-def test_package_split_uses_codeflow_paths_and_legacy_namespace():
+def test_package_split_uses_codeflow_paths_only():
     from codeflow.evaluation.evaluator import BenchmarkEvaluator
     from codeflow.evaluation.metrics import run_context_ablation_v2
     from codeflow.features.memory import LayeredMemory
@@ -50,12 +46,12 @@ def test_package_split_uses_codeflow_paths_and_legacy_namespace():
     assert callable(run_context_ablation_v2)
     for legacy_module in ("evaluator.py", "metrics.py", "models.py", "memory.py"):
         assert not (Path("codeflow") / legacy_module).exists()
-    assert (Path("pico") / "__init__.py").exists()
-    assert (Path("pico") / "__main__.py").exists()
+    assert (Path("codeflow") / "__init__.py").exists()
+    assert (Path("codeflow") / "__main__.py").exists()
 
 
 def test_packaging_discovers_codeflow_subpackages():
     pyproject_text = Path("pyproject.toml").read_text(encoding="utf-8")
 
     assert "[tool.setuptools.packages.find]" in pyproject_text
-    assert 'include = ["codeflow*", "pico*"]' in pyproject_text
+    assert 'include = ["codeflow*"]' in pyproject_text

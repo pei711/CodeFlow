@@ -9,7 +9,7 @@ def build_workspace(tmp_path):
 
 def build_agent(tmp_path, outputs, **kwargs):
     workspace = build_workspace(tmp_path)
-    store = SessionStore(tmp_path / ".pico" / "sessions")
+    store = SessionStore(tmp_path / ".codeflow" / "sessions")
     approval_policy = kwargs.pop("approval_policy", "auto")
     return CodeFlow(
         model_client=FakeModelClient(outputs),
@@ -204,7 +204,7 @@ def test_context_manager_summarizes_older_tool_output_into_one_line(tmp_path):
 
 
 def test_context_manager_relevant_memory_stays_scoped_to_turn_summaries(tmp_path):
-    memory_root = tmp_path / ".pico" / "memory"
+    memory_root = tmp_path / ".codeflow" / "memory"
     topics_dir = memory_root / "topics"
     topics_dir.mkdir(parents=True)
     (memory_root / "MEMORY.md").write_text(

@@ -16,19 +16,12 @@ MAX_HISTORY = 12000
 # 这些文件最可能直接影响 agent 的行动方式。
 # 我们不会预加载整个仓库，只会先给模型一小份“导航包”。
 DOC_NAMES = ("AGENTS.md", "README.md", "pyproject.toml", "package.json")
-IGNORED_PATH_NAMES = {".git", ".pico", ".codeflow", "__pycache__", ".pytest_cache", ".ruff_cache", ".venv", "venv"}
+IGNORED_PATH_NAMES = {".git", ".codeflow", "__pycache__", ".pytest_cache", ".ruff_cache", ".venv", "venv"}
 
 
 def workspace_state_path(workspace_root, area):
-    """Use CodeFlow state for new workspaces and retain existing legacy data."""
-    workspace_root = Path(workspace_root)
-    current_path = workspace_root / ".codeflow" / area
-    legacy_path = workspace_root / ".pico" / area
-    if current_path.exists():
-        return current_path
-    if legacy_path.exists():
-        return legacy_path
-    return current_path if not (workspace_root / ".pico").exists() else legacy_path
+    """Return the CodeFlow-owned state path for a workspace area."""
+    return Path(workspace_root) / ".codeflow" / area
 
 
 def now():

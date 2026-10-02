@@ -17,7 +17,7 @@ CodeFlow 是一个面向代码仓库的轻量本地 coding agent。它直接跑�
 
 - 发布包名是 `codeflow-agent`
 - CLI 命令是 `codeflow`
-- 主 Python 导入路径为 `codeflow`；旧的 `pico` 导入路径和 `Pico` 类名继续作为兼容别名
+- 主 Python 导入路径为 `codeflow`，核心 Agent 类名为 `CodeFlow`
 - 新会话保存在 `.codeflow/sessions/`
 - 每次运行的工件保存在 `.codeflow/runs/<run_id>/`
 - `Relevant memory` 使用中文语义向量与 BM25 召回历史轮次摘要，再以 RRF 合并，最多注入三条
@@ -77,7 +77,7 @@ uv run codeflow --cwd /path/to/repo
 uv run codeflow "inspect the test failures and propose a fix"
 ```
 
-旧模块入口仍保留，也可以直接这样启动：
+也可以通过 Python 模块入口启动：
 
 ```bash
 python -m codeflow
@@ -88,16 +88,16 @@ python -m codeflow
 CodeFlow 启动时会读取项目根目录的 `.env`。本地真实 key 放在 `.env`，仓库只保留 `.env.example`。配置优先级是：
 
 ```text
-显式 CLI 参数 > .env 里的 CODEFLOW_* 变量 > 旧环境变量 > 代码默认值
+显式 CLI 参数 > .env 里的 CODEFLOW_* 变量 > provider 标准环境变量 > 代码默认值
 ```
 
 Provider 选择的具体顺序是：
 
 ```text
---provider > CODEFLOW_PROVIDER > 旧 PICO_PROVIDER > 代码默认 deepseek
+--provider > CODEFLOW_PROVIDER > 代码默认 deepseek
 ```
 
-不传 `--provider` 且没有 `CODEFLOW_PROVIDER` 或旧 `PICO_PROVIDER` 时默认使用 `deepseek`。这是推荐配置路径：DeepSeek 的 Anthropic-compatible endpoint 比本地 Ollama 更少依赖本机模型环境，也比 OpenAI-compatible/Anthropic-compatible 代理少一层默认 gateway 假设。其他 provider 仍然保留，可以在 `.env` 里写 `CODEFLOW_PROVIDER=openai`、`CODEFLOW_PROVIDER=anthropic`、`CODEFLOW_PROVIDER=ollama`，也可以显式传 `--provider openai`、`--provider anthropic` 或 `--provider ollama`。
+不传 `--provider` 且没有 `CODEFLOW_PROVIDER` 时默认使用 `deepseek`。这是推荐配置路径：DeepSeek 的 Anthropic-compatible endpoint 比本地 Ollama 更少依赖本机模型环境，也比 OpenAI-compatible/Anthropic-compatible 代理少一层默认 gateway 假设。其他 provider 仍然保留，可以在 `.env` 里写 `CODEFLOW_PROVIDER=openai`、`CODEFLOW_PROVIDER=anthropic`、`CODEFLOW_PROVIDER=ollama`，也可以显式传 `--provider openai`、`--provider anthropic` 或 `--provider ollama`。
 
 `.env` 会在构建 provider client 前加载，并覆盖当前进程里的同名环境变量。模型名和 base URL 可以通过 `--model`、`--base-url` 临时覆盖；API key 只从环境变量读取。
 
@@ -255,7 +255,7 @@ CODEFLOW_RIGHT_CODES_API_KEY="your-right-codes-key"
 CODEFLOW_ANTHROPIC_MODEL="claude-sonnet-4-6"
 ```
 
-如果你的服务端对多个兼容接口复用了同一套密钥，CodeFlow 也支持从 `CODEFLOW_ANTHROPIC_API_KEY` 回退到 `ANTHROPIC_API_KEY`、`CODEFLOW_RIGHT_CODES_API_KEY`、`RIGHT_CODES_API_KEY`、`CODEFLOW_OPENAI_API_KEY` 或 `OPENAI_API_KEY`。旧的 `PICO_*` 环境变量仍然有效。
+如果你的服务端对多个兼容接口复用了同一套密钥，CodeFlow 也支持从 `CODEFLOW_ANTHROPIC_API_KEY` 回退到 `ANTHROPIC_API_KEY`、`CODEFLOW_RIGHT_CODES_API_KEY`、`RIGHT_CODES_API_KEY`、`CODEFLOW_OPENAI_API_KEY` 或 `OPENAI_API_KEY`。
 
 ### Ollama
 
@@ -279,7 +279,7 @@ uv run codeflow --provider ollama --model qwen3.5:4b
 
 每轮结束后，CodeFlow 将“用户目标”和“处理结果”保存为轮次摘要。下一轮提问时，系统分别运行中文语义向量检索和 BM25 关键词检索，用 RRF 融合两路排名，并把最多三条结果放入 `Relevant memory`。使用 FastEmbed 的 `BAAI/bge-small-zh-v1.5` 模型，第一次召回时需要下载模型；模型不可用时自动退回 TF-IDF 字符向量与 BM25。
 
-旧环境变量（`PICO_*`）、`pico` Python 导入路径和 `.pico/` 状态目录仍受支持。新工作区默认使用 `.codeflow/`；包含已有 `.pico/` 状态的工作区会继续从原目录加载会话和记忆。
+环境变量统一使用 `CODEFLOW_*` 前缀，Python 导入路径为 `codeflow`，会话和记忆保存在 `.codeflow/`。
 - `/exit` 或 `/quit`：退出 REPL
 
 模型请求和工具执行期间，终端会显示 `CodeFlow 思考中` 动画。它只是等待状态提示，不会输出模型的内部思考内容。
@@ -310,11 +310,11 @@ CodeFlow 不会默认把所有动作都放开。像 shell 执行、文件写入�
 
 Shell 和全文搜索有执行超时；Shell 子进程的 stdout、stderr 分别最多保留 128 KiB，工具结果保留前 4,000 字符并附截断提示。读取单次最多 2,000 行，写入内容最多 1 MB。每次调用的 trace 记录能力、耗时、状态、错误码、变更路径和输出是否截断；较长参数在审计 trace 中会保留摘要和哈希，敏感值会脱敏。
 
-`run_shell` 在审批通过后仍必须经过 SRT。默认配置位于 `srt-settings.json`：命令可读写当前工作区，但不能读 `.env`、`.codeflow` 或兼容旧状态的 `.pico`，不能写 `.git`、`.env`、这两个状态目录和沙箱配置本身，网络默认关闭。SRT 缺失、配置无效或系统隔离未初始化时，CodeFlow 会拒绝执行，不会自动退回普通 shell。
+`run_shell` 在审批通过后仍必须经过 SRT。默认配置位于 `srt-settings.json`：命令可读写当前工作区，但不能读 `.env` 或 `.codeflow`，不能写 `.git`、`.env`、`.codeflow` 和沙箱配置本身，网络默认关闭。SRT 缺失、配置无效或系统隔离未初始化时，CodeFlow 会拒绝执行，不会自动退回普通 shell。
 
 仅测试或排障时可显式使用 `--shell-backend direct`；它没有操作系统级隔离，不应作为日常运行方式。
 
-每次运行结束后，都会在 `.codeflow/runs/<run_id>/` 下写出这些文件。已有 `.pico/` 状态的工作区继续沿用原目录：
+每次运行结束后，都会在 `.codeflow/runs/<run_id>/` 下写出这些文件：
 
 - `task_state.json`
 - `trace.jsonl`

@@ -419,9 +419,7 @@ def _dense_cosine_similarity(left, right):
 
 
 def _semantic_rank(documents, query, top_k=HYBRID_RETRIEVAL_CANDIDATES):
-    model_name = os.environ.get("CODEFLOW_MEMORY_EMBEDDING_MODEL") or os.environ.get(
-        "PICO_MEMORY_EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL
-    )
+    model_name = os.environ.get("CODEFLOW_MEMORY_EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL)
     model = _get_embedding_model(model_name)
     query_vector = _cached_embedding(model, model_name, str(query))
     scores = []

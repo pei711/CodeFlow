@@ -28,7 +28,7 @@ def build_workspace(tmp_path):
 
 def build_agent(tmp_path, outputs, **kwargs):
     workspace = build_workspace(tmp_path)
-    store = SessionStore(tmp_path / ".pico" / "sessions")
+    store = SessionStore(tmp_path / ".codeflow" / "sessions")
     approval_policy = kwargs.pop("approval_policy", "auto")
     shell_backend = kwargs.pop("shell_backend", "direct")
     return CodeFlow(
@@ -318,13 +318,13 @@ def test_invalid_risky_tool_does_not_prompt_for_approval(tmp_path):
 
 def test_list_files_hides_internal_agent_state(tmp_path):
     agent = build_agent(tmp_path, [])
-    (tmp_path / ".pico").mkdir(exist_ok=True)
+    (tmp_path / ".codeflow").mkdir(exist_ok=True)
     (tmp_path / ".git").mkdir(exist_ok=True)
     (tmp_path / "hello.txt").write_text("hi\n", encoding="utf-8")
 
     result = agent.run_tool("list_files", {})
 
-    assert ".pico" not in result
+    assert ".codeflow" not in result
     assert ".git" not in result
     assert "[F] hello.txt" in result
 
@@ -815,7 +815,7 @@ def test_build_agent_uses_right_codes_shared_key_for_openai_provider(tmp_path):
         },
     )()
 
-    with patch.dict(os.environ, {"PICO_RIGHT_CODES_API_KEY": "sk-right-codes"}, clear=True):
+    with patch.dict(os.environ, {"CODEFLOW_RIGHT_CODES_API_KEY": "sk-right-codes"}, clear=True):
         with patch(
             "codeflow.cli.OllamaModelClient",
             side_effect=AssertionError("ollama client should not be used"),
@@ -833,7 +833,7 @@ def test_build_agent_uses_deepseek_flash_defaults_and_key_for_openai_provider(tm
         ["--cwd", str(tmp_path), "--provider", "openai"]
     )
 
-    with patch.dict(os.environ, {"PICO_DEEPSEEK_API_KEY": "sk-deepseek"}, clear=True):
+    with patch.dict(os.environ, {"CODEFLOW_DEEPSEEK_API_KEY": "sk-deepseek"}, clear=True):
         with patch("codeflow.cli.OpenAICompatibleModelClient") as mock_openai:
             codeflow_pkg.build_agent(args)
 
@@ -854,7 +854,7 @@ def test_detect_model_switch_requires_explicit_switch_intent():
 def test_natural_language_switch_rebuilds_client_and_preserves_history(tmp_path):
     args = codeflow_pkg.build_arg_parser().parse_args(["--cwd", str(tmp_path)])
 
-    with patch.dict(os.environ, {"PICO_DEEPSEEK_API_KEY": "sk-deepseek"}, clear=True):
+    with patch.dict(os.environ, {"CODEFLOW_DEEPSEEK_API_KEY": "sk-deepseek"}, clear=True):
         agent = codeflow_pkg.build_agent(args)
         pro_client = agent.model_client
         flash_response = agent.ask("请切换到 flash")
@@ -879,7 +879,7 @@ def test_natural_language_switch_rebuilds_client_and_preserves_history(tmp_path)
 def test_natural_language_switch_to_flash41_reuses_deepseek_key(tmp_path):
     args = codeflow_pkg.build_arg_parser().parse_args(["--cwd", str(tmp_path)])
 
-    with patch.dict(os.environ, {"PICO_DEEPSEEK_API_KEY": "sk-deepseek"}, clear=True):
+    with patch.dict(os.environ, {"CODEFLOW_DEEPSEEK_API_KEY": "sk-deepseek"}, clear=True):
         agent = codeflow_pkg.build_agent(args)
         response = agent.ask("切换到 deepseek-v4.1-flash")
 
@@ -912,11 +912,11 @@ def test_build_agent_uses_project_env_provider_when_cli_omitted(tmp_path):
     (tmp_path / ".env").write_text(
         "\n".join(
             [
-                "PICO_PROVIDER=openai",
-                "PICO_OPENAI_API_BASE=https://www.right.codes/codex/v1",
-                "PICO_OPENAI_API_KEY=sk-project-openai",
-                "PICO_OPENAI_MODEL=gpt-5.4",
-                "PICO_DEEPSEEK_API_KEY=sk-project-deepseek",
+                "CODEFLOW_PROVIDER=openai",
+                "CODEFLOW_OPENAI_API_BASE=https://www.right.codes/codex/v1",
+                "CODEFLOW_OPENAI_API_KEY=sk-project-openai",
+                "CODEFLOW_OPENAI_MODEL=gpt-5.4",
+                "CODEFLOW_DEEPSEEK_API_KEY=sk-project-deepseek",
             ]
         )
         + "\n",
@@ -946,11 +946,11 @@ def test_build_agent_prefers_cli_provider_over_project_env_provider(tmp_path):
     (tmp_path / ".env").write_text(
         "\n".join(
             [
-                "PICO_PROVIDER=openai",
-                "PICO_OPENAI_API_KEY=sk-project-openai",
-                "PICO_DEEPSEEK_API_BASE=https://api.deepseek.com/anthropic",
-                "PICO_DEEPSEEK_API_KEY=sk-project-deepseek",
-                "PICO_DEEPSEEK_MODEL=deepseek-v4-pro",
+                "CODEFLOW_PROVIDER=openai",
+                "CODEFLOW_OPENAI_API_KEY=sk-project-openai",
+                "CODEFLOW_DEEPSEEK_API_BASE=https://api.deepseek.com/anthropic",
+                "CODEFLOW_DEEPSEEK_API_KEY=sk-project-deepseek",
+                "CODEFLOW_DEEPSEEK_MODEL=deepseek-v4-pro",
             ]
         )
         + "\n",
@@ -1043,9 +1043,9 @@ def test_build_agent_uses_deepseek_provider_and_env_configuration(tmp_path):
     (tmp_path / ".env").write_text(
         "\n".join(
             [
-                "PICO_DEEPSEEK_API_BASE=https://api.deepseek.com/anthropic",
-                "PICO_DEEPSEEK_API_KEY=sk-project-deepseek",
-                "PICO_DEEPSEEK_MODEL=deepseek-v4-pro",
+                "CODEFLOW_DEEPSEEK_API_BASE=https://api.deepseek.com/anthropic",
+                "CODEFLOW_DEEPSEEK_API_KEY=sk-project-deepseek",
+                "CODEFLOW_DEEPSEEK_MODEL=deepseek-v4-pro",
             ]
         )
         + "\n",
@@ -1151,7 +1151,7 @@ def test_successful_run_persists_run_artifacts_and_stop_reason(tmp_path):
 
     assert agent.ask("Do the thing") == "Finished."
 
-    runs_root = tmp_path / ".pico" / "runs"
+    runs_root = tmp_path / ".codeflow" / "runs"
     run_dirs = [path for path in runs_root.iterdir() if path.is_dir()]
     assert len(run_dirs) == 1
 
@@ -1190,7 +1190,7 @@ def test_trace_and_report_redact_secret_env_values(tmp_path):
 
         assert agent.ask("Mask the secret") == "Masked."
 
-    runs_root = tmp_path / ".pico" / "runs"
+    runs_root = tmp_path / ".codeflow" / "runs"
     run_dirs = [path for path in runs_root.iterdir() if path.is_dir()]
     assert len(run_dirs) == 1
 
@@ -1586,7 +1586,7 @@ def test_freshness_mismatch_creates_checkpoint_before_model_completion(tmp_path)
 
 def test_runtime_identity_persists_key_execution_metadata(tmp_path):
     workspace = build_workspace(tmp_path)
-    store = SessionStore(tmp_path / ".pico" / "sessions")
+    store = SessionStore(tmp_path / ".codeflow" / "sessions")
     agent = CodeFlow(
         model_client=FakeModelClient(["<final>Done.</final>"]),
         workspace=workspace,
@@ -1714,7 +1714,7 @@ def test_explicit_memory_promotion_persists_durable_memory_topics(tmp_path):
         tmp_path,
         [
             "<final>Project convention: Use constrained tools instead of guessing.\n"
-            "Project convention: Preserve local agent state under .pico/.\n"
+            "Project convention: Preserve local agent state under .codeflow/.\n"
             "Decision: Keep durable memory topic-based and lightweight.</final>",
         ],
     )
@@ -1726,9 +1726,9 @@ def test_explicit_memory_promotion_persists_durable_memory_topics(tmp_path):
 
     assert "Project convention:" in answer
 
-    index_path = tmp_path / ".pico" / "memory" / "MEMORY.md"
-    conventions_path = tmp_path / ".pico" / "memory" / "topics" / "project-conventions.md"
-    decisions_path = tmp_path / ".pico" / "memory" / "topics" / "key-decisions.md"
+    index_path = tmp_path / ".codeflow" / "memory" / "MEMORY.md"
+    conventions_path = tmp_path / ".codeflow" / "memory" / "topics" / "project-conventions.md"
+    decisions_path = tmp_path / ".codeflow" / "memory" / "topics" / "key-decisions.md"
     report = json.loads(agent.run_store.report_path(agent.current_task_state).read_text(encoding="utf-8"))
 
     assert index_path.exists()
@@ -1739,7 +1739,7 @@ def test_explicit_memory_promotion_persists_durable_memory_topics(tmp_path):
     assert "Keep durable memory topic-based and lightweight." in decisions_path.read_text(encoding="utf-8")
     assert report["durable_promotions"] == [
         "project-conventions: Use constrained tools instead of guessing.",
-        "project-conventions: Preserve local agent state under .pico/.",
+        "project-conventions: Preserve local agent state under .codeflow/.",
         "key-decisions: Keep durable memory topic-based and lightweight.",
     ]
 
@@ -1757,8 +1757,8 @@ def test_explicit_memory_promotion_supports_chinese_intent_and_labels(tmp_path):
 
     assert "项目约定：" in answer
 
-    conventions_path = tmp_path / ".pico" / "memory" / "topics" / "project-conventions.md"
-    decisions_path = tmp_path / ".pico" / "memory" / "topics" / "key-decisions.md"
+    conventions_path = tmp_path / ".codeflow" / "memory" / "topics" / "project-conventions.md"
+    decisions_path = tmp_path / ".codeflow" / "memory" / "topics" / "key-decisions.md"
 
     assert "优先使用受约束工具，不要靠猜。" in conventions_path.read_text(encoding="utf-8")
     assert "持久记忆保持轻量、按 topic 管理。" in decisions_path.read_text(encoding="utf-8")
@@ -1778,8 +1778,8 @@ def test_explicit_memory_promotion_rejects_secret_shaped_and_transient_lines(tmp
     agent.ask("Capture these stable facts into durable memory.")
 
     report = json.loads(agent.run_store.report_path(agent.current_task_state).read_text(encoding="utf-8"))
-    conventions_path = tmp_path / ".pico" / "memory" / "topics" / "project-conventions.md"
-    dependency_path = tmp_path / ".pico" / "memory" / "topics" / "dependency-facts.md"
+    conventions_path = tmp_path / ".codeflow" / "memory" / "topics" / "project-conventions.md"
+    dependency_path = tmp_path / ".codeflow" / "memory" / "topics" / "dependency-facts.md"
 
     assert report["durable_promotions"] == [
         "project-conventions: Use constrained tools instead of guessing.",
@@ -1805,7 +1805,7 @@ def test_explicit_memory_promotion_supersedes_matching_durable_fact(tmp_path):
     assert agent.ask("Capture this stable dependency fact into durable memory.") == "Dependency: Python runtime is 3.11."
     assert agent.ask("Save the updated dependency fact into durable memory.") == "Dependency: Python runtime is 3.12."
 
-    dependency_path = tmp_path / ".pico" / "memory" / "topics" / "dependency-facts.md"
+    dependency_path = tmp_path / ".codeflow" / "memory" / "topics" / "dependency-facts.md"
     report = json.loads(agent.run_store.report_path(agent.current_task_state).read_text(encoding="utf-8"))
     text = dependency_path.read_text(encoding="utf-8")
 
@@ -1828,7 +1828,7 @@ def test_explicit_memory_promotion_dedupes_duplicate_durable_note(tmp_path):
     agent.ask("Capture the stable fact into durable memory.")
     agent.ask("Capture the stable fact into durable memory again.")
 
-    conventions_path = tmp_path / ".pico" / "memory" / "topics" / "project-conventions.md"
+    conventions_path = tmp_path / ".codeflow" / "memory" / "topics" / "project-conventions.md"
     text = conventions_path.read_text(encoding="utf-8")
 
     assert text.count("Use constrained tools instead of guessing.") == 1
@@ -1846,7 +1846,7 @@ def test_agent_records_model_cache_metadata_in_last_prompt_metadata(tmp_path):
             return super().complete(prompt, max_new_tokens, **kwargs)
 
     workspace = build_workspace(tmp_path)
-    store = SessionStore(tmp_path / ".pico" / "sessions")
+    store = SessionStore(tmp_path / ".codeflow" / "sessions")
     agent = CodeFlow(
         model_client=CacheAwareFakeModelClient(["<final>Done.</final>"]),
         workspace=workspace,

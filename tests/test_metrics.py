@@ -30,9 +30,9 @@ def test_provider_profile_loads_project_env_before_reading_deepseek_config(tmp_p
     (tmp_path / ".env").write_text(
         "\n".join(
             [
-                "PICO_DEEPSEEK_API_KEY=sk-project-deepseek",
-                "PICO_DEEPSEEK_MODEL=deepseek-v4-pro",
-                "PICO_DEEPSEEK_API_BASE=https://api.deepseek.com/anthropic",
+                "CODEFLOW_DEEPSEEK_API_KEY=sk-project-deepseek",
+                "CODEFLOW_DEEPSEEK_MODEL=deepseek-v4-pro",
+                "CODEFLOW_DEEPSEEK_API_BASE=https://api.deepseek.com/anthropic",
             ]
         )
         + "\n",
@@ -59,7 +59,7 @@ def test_provider_profile_loads_project_env_before_reading_deepseek_config(tmp_p
 def test_provider_profile_uses_right_codes_shared_key_for_gpt(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
-    with patch.dict(os.environ, {"PICO_RIGHT_CODES_API_KEY": "sk-right-codes"}, clear=True):
+    with patch.dict(os.environ, {"CODEFLOW_RIGHT_CODES_API_KEY": "sk-right-codes"}, clear=True):
         profile = _provider_profile("gpt")
 
     assert profile["status"] == "ready"
