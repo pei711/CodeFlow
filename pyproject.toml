@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codeflow-agent"
+version = "0.1.0"
+description = "CodeFlow: a local coding agent for DeepSeek, OpenAI-compatible, Anthropic-compatible, and Ollama models"
+requires-python = ">=3.10"
+dependencies = [
+    "fastembed>=0.7.3,<1",
+]
+
+[project.scripts]
+codeflow = "codeflow.cli:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3.5",
+  "ruff>=0.4.4",
+  "tzdata>=2024.1",
+]
+
+[tool.setuptools.packages.find]
+include = ["codeflow*", "pico*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

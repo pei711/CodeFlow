@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mini-codeflow"
+version = "0.1.0"
+description = "Teaching-sized CodeFlow agent harness"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+mini-codeflow = "mini_codeflow.cli:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3.5",
+  "ruff>=0.4.4",
+]
+
+[tool.setuptools.packages.find]
+include = ["mini_codeflow*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

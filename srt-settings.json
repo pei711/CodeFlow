@@ -1,0 +1,26 @@
+{
+  "network": {
+    "allowedDomains": [],
+    "deniedDomains": []
+  },
+  "filesystem": {
+    "denyRead": [
+      "./.env",
+      "./.pico",
+      "./.codeflow"
+    ],
+    "allowRead": [
+      "."
+    ],
+    "allowWrite": [
+      "."
+    ],
+    "denyWrite": [
+      "./.git",
+      "./.env",
+      "./.pico",
+      "./.codeflow",
+      "./srt-settings.json"
+    ]
+  }
+}
